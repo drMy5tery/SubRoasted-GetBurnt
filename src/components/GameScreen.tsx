@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { ArrowRight, Home, Volume2, Heart, Meh, Frown, Angry, Skull, AlertCircle, VolumeX } from 'lucide-react';
@@ -10,10 +10,14 @@ export default function GameScreen() {
   const [selectedAnswer, setSelectedAnswer] = useState<string>('');
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [error, setError] = useState<string>('');
   const [isGeneratingRoast, setIsGeneratingRoast] = useState(false);
   const [isGeneratingSpeech, setIsGeneratingSpeech] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [roastPlayCount, setRoastPlayCount] = useState(0);
+  const [spamClickCount, setSpamClickCount] = useState(0);
+  
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!state.gameStarted) {
@@ -23,9 +27,30 @@ export default function GameScreen() {
     loadNewQuestion();
   }, []);
 
+  // Cleanup audio when component unmounts or question changes
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+    };
+  }, [state.totalQuestions]);
+
   const loadNewQuestion = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     setError('');
+    
+    // Stop any playing audio when loading new question
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    setIsPlaying(false);
+    setRoastPlayCount(0);
+    setSpamClickCount(0);
     
     try {
       // Fetch real Reddit comment
@@ -70,9 +95,21 @@ export default function GameScreen() {
           
           // Auto-play the roast
           const audio = new Audio(audioUrl);
-          setAudioElement(audio);
+          audioRef.current = audio;
+          
+          audio.onended = () => {
+            setIsPlaying(false);
+          };
+          
+          audio.onerror = () => {
+            console.error('Error playing audio');
+            setIsPlaying(false);
+          };
+          
+          setIsPlaying(true);
           audio.play().catch(error => {
             console.error('Error playing audio:', error);
+            setIsPlaying(false);
           });
         }
       } catch (error) {
@@ -98,11 +135,12 @@ export default function GameScreen() {
     }
 
     // Clean up audio
-    if (audioElement) {
-      audioElement.pause();
-      audioElement.src = '';
-      setAudioElement(null);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
     }
+    setIsPlaying(false);
 
     setSelectedAnswer('');
     setShowResult(false);
@@ -147,20 +185,71 @@ export default function GameScreen() {
     }
   };
 
-  const playRoastAudio = () => {
-    if (state.audioURL) {
+  const handlePlayRoast = () => {
+    if (roastPlayCount >= 2) {
+      // Increment spam click count for the coal message
+      setSpamClickCount(prev => prev + 1);
+      return;
+    }
+
+    if (state.audioURL && !isPlaying) {
+      // Stop any existing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+
       const audio = new Audio(state.audioURL);
+      audioRef.current = audio;
+      
+      audio.onended = () => {
+        setIsPlaying(false);
+      };
+      
+      audio.onerror = () => {
+        console.error('Error playing audio');
+        setIsPlaying(false);
+      };
+      
+      setIsPlaying(true);
+      setRoastPlayCount(prev => prev + 1);
+      
       audio.play().catch(error => {
         console.error('Error playing audio:', error);
+        setIsPlaying(false);
       });
     }
   };
 
   const stopAudio = () => {
-    if (audioElement) {
-      audioElement.pause();
-      audioElement.currentTime = 0;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
     }
+  };
+
+  const getPlayButtonText = () => {
+    if (spamClickCount >= 3) {
+      return "Chat does he wants to get darker than the coal that powers his house? 💀";
+    }
+    if (roastPlayCount >= 2) {
+      return "You're Burnt AF 🔥";
+    }
+    if (roastPlayCount >= 1) {
+      return "Get Cooked Again? 🍳";
+    }
+    return "Play Roast 🎵";
+  };
+
+  const getPlayButtonStyle = () => {
+    if (spamClickCount >= 3) {
+      return "text-red-600 bg-red-500/10 border-red-500/30 cursor-not-allowed";
+    }
+    if (roastPlayCount >= 2) {
+      return "text-orange-600 bg-orange-500/10 border-orange-500/30 cursor-not-allowed";
+    }
+    return "text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30";
   };
 
   if (state.loading) {
@@ -305,21 +394,33 @@ export default function GameScreen() {
                           Generating speech...
                         </div>
                       ) : state.audioURL ? (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={playRoastAudio}
-                            className="flex items-center text-blue-400 hover:text-blue-300 transition-colors px-3 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20"
-                          >
-                            <Volume2 className="w-4 h-4 mr-2" />
-                            Play Roast
-                          </button>
-                          <button
-                            onClick={stopAudio}
-                            className="flex items-center text-gray-400 hover:text-gray-300 transition-colors px-3 py-2 rounded-lg bg-gray-500/10 hover:bg-gray-500/20"
-                          >
-                            <VolumeX className="w-4 h-4 mr-2" />
-                            Stop
-                          </button>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {spamClickCount >= 3 ? (
+                            <div className={`px-4 py-2 rounded-lg border transition-colors ${getPlayButtonStyle()}`}>
+                              <span className="text-sm font-medium">{getPlayButtonText()}</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={handlePlayRoast}
+                              disabled={roastPlayCount >= 2 || isPlaying}
+                              className={`flex items-center transition-colors px-4 py-2 rounded-lg border ${getPlayButtonStyle()}`}
+                            >
+                              <Volume2 className="w-4 h-4 mr-2" />
+                              <span className="text-sm font-medium">
+                                {isPlaying ? 'Playing...' : getPlayButtonText()}
+                              </span>
+                            </button>
+                          )}
+                          
+                          {isPlaying && (
+                            <button
+                              onClick={stopAudio}
+                              className="flex items-center text-gray-400 hover:text-gray-300 transition-colors px-3 py-2 rounded-lg bg-gray-500/10 hover:bg-gray-500/20 border border-gray-500/30"
+                            >
+                              <VolumeX className="w-4 h-4 mr-2" />
+                              <span className="text-sm">Stop</span>
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <p className="text-gray-400 text-sm">
