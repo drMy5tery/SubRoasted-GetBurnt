@@ -18,163 +18,15 @@ const POPULAR_SUBREDDITS = [
   'wholesomememes', 'cats', 'dogs', 'programming', 'learnprogramming'
 ];
 
-// Expanded mock comments for better gameplay variety (fallback)
-const MOCK_COMMENTS: Comment[] = [
-  {
-    id: 'mock1',
-    text: "This is exactly why I keep my sourdough starter in the fridge overnight before using it. The slow fermentation really develops those complex flavors you can't get any other way.",
-    subreddit: 'Breadit',
-    score: 1247,
-    author: 'BreadMaster2024'
-  },
-  {
-    id: 'mock2',
-    text: "YTA. You knew your roommate had an important interview today and you still decided to practice your bagpipes at 6 AM? Come on.",
-    subreddit: 'AmItheAsshole',
-    score: 3891,
-    author: 'JudgementalRedditor'
-  },
-  {
-    id: 'mock3',
-    text: "The mitochondria is the powerhouse of the cell. But seriously, cellular respiration is fascinating when you think about how ATP synthesis works.",
-    subreddit: 'explainlikeimfive',
-    score: 567,
-    author: 'ScienceTeacher99'
-  },
-  {
-    id: 'mock4',
-    text: "Just spent 6 hours debugging only to realize I had a semicolon in the wrong place. Why do I do this to myself?",
-    subreddit: 'programming',
-    score: 2341,
-    author: 'CodeWarrior42'
-  },
-  {
-    id: 'mock5',
-    text: "My cat brought me a dead mouse this morning and I praised him like he just won the Nobel Prize. I think I'm losing it.",
-    subreddit: 'cats',
-    score: 4567,
-    author: 'CrazyCatLady'
-  },
-  {
-    id: 'mock6',
-    text: "TIL that honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3000 years old and still perfectly edible.",
-    subreddit: 'todayilearned',
-    score: 8923,
-    author: 'FactCollector'
-  },
-  {
-    id: 'mock7',
-    text: "Anyone else think pineapple on pizza is actually amazing? Fight me.",
-    subreddit: 'unpopularopinion',
-    score: 156,
-    author: 'PineappleLover'
-  },
-  {
-    id: 'mock8',
-    text: "TIFU by accidentally sending a love letter meant for my crush to my mom instead. She replied with 'I love you too sweetie' and now I want to disappear.",
-    subreddit: 'tifu',
-    score: 12456,
-    author: 'EmbarrassedTeen'
-  },
-  {
-    id: 'mock9',
-    text: "The new Spider-Man movie was incredible! The way they handled the multiverse concept was chef's kiss. Tom Holland really nailed it.",
-    subreddit: 'movies',
-    score: 3421,
-    author: 'MovieBuff2024'
-  },
-  {
-    id: 'mock10',
-    text: "Pro tip: If you're feeling overwhelmed, try the 5-4-3-2-1 grounding technique. Name 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, and 1 you can taste.",
-    subreddit: 'LifeProTips',
-    score: 7890,
-    author: 'MindfulHelper'
-  },
-  {
-    id: 'mock11',
-    text: "I've been learning Python for 3 months and I still Google how to reverse a list every single time. At what point do I stop being a beginner?",
-    subreddit: 'learnprogramming',
-    score: 2156,
-    author: 'CodeNewbie2024'
-  },
-  {
-    id: 'mock12',
-    text: "My girlfriend said she wanted to 'Netflix and chill' but then actually wanted to watch Netflix and chill. I'm so confused by modern dating.",
-    subreddit: 'relationships',
-    score: 4321,
-    author: 'ConfusedBoyfriend'
-  },
-  {
-    id: 'mock13',
-    text: "Why do people put milk in their tea BEFORE the tea bag? That's like putting your shoes on before your socks. Absolute madness.",
-    subreddit: 'Showerthoughts',
-    score: 6789,
-    author: 'TeaPhilosopher'
-  },
-  {
-    id: 'mock14',
-    text: "I just realized I've been pronouncing 'epitome' wrong my entire life. I thought it was 'epi-tome' not 'eh-pit-oh-me'. I'm 28 years old.",
-    subreddit: 'todayilearned',
-    score: 9876,
-    author: 'WordsAreHard'
-  },
-  {
-    id: 'mock15',
-    text: "My dog learned to open doors and now he thinks he owns the place. He literally walked into my room, stared at me, and walked out. The audacity.",
-    subreddit: 'dogs',
-    score: 5432,
-    author: 'DogParentLife'
-  },
-  {
-    id: 'mock16',
-    text: "I spent $200 on a mechanical keyboard and now I can't stop typing random things just to hear the clicks. My productivity has never been lower.",
-    subreddit: 'technology',
-    score: 3210,
-    author: 'ClickyKeys'
-  },
-  {
-    id: 'mock17',
-    text: "Unpopular opinion: Cereal is better with warm milk. Cold milk makes my teeth hurt and warm milk makes the cereal taste better.",
-    subreddit: 'unpopularopinion',
-    score: 987,
-    author: 'WarmMilkFan'
-  },
-  {
-    id: 'mock18',
-    text: "I accidentally liked my ex's Instagram post from 2019 while stalking their profile. Do I unlike it and look obvious, or leave it and look creepy?",
-    subreddit: 'relationships',
-    score: 7654,
-    author: 'SocialMediaFail'
-  },
-  {
-    id: 'mock19',
-    text: "The boss fight in Elden Ring took me 47 tries. FORTY. SEVEN. I'm not even embarrassed anymore, I'm impressed by my own persistence.",
-    subreddit: 'gaming',
-    score: 8765,
-    author: 'PersistentGamer'
-  },
-  {
-    id: 'mock20',
-    text: "I made homemade pasta for the first time and it looked like abstract art. Tasted amazing though, so I'm calling it 'deconstructed fettuccine'.",
-    subreddit: 'food',
-    score: 2468,
-    author: 'ChefInTraining'
-  }
-];
-
 export async function generateComment(): Promise<Comment> {
-  // Try to use real Reddit API first
   try {
     const { redditClient } = await import('./reddit-api');
     const comment = await redditClient.fetchRandomComment();
-    console.log('Successfully fetched real Reddit comment');
+    console.log('Successfully fetched real Reddit comment from r/' + comment.subreddit);
     return comment;
   } catch (error) {
-    console.warn('Reddit API failed, falling back to mock data:', error);
-    
-    // Fallback to mock data with simulated delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return MOCK_COMMENTS[Math.floor(Math.random() * MOCK_COMMENTS.length)];
+    console.error('Reddit API failed:', error);
+    throw new Error('Unable to fetch Reddit comments. Please check your Reddit API configuration.');
   }
 }
 
@@ -199,7 +51,7 @@ export async function generateRoast(comment: string, wrongGuess: string, correct
       throw new Error('Groq API key not configured');
     }
     
-    const prompt = `Roast someone who guessed "${wrongGuess}" when the correct subreddit was "${correctAnswer}". Make it funny, sarcastic, and Reddit-style. Keep it under 100 words and - make it playful and witty and a lot of passive agrresiveness.`;
+    const prompt = `Roast someone who guessed "${wrongGuess}" when the correct subreddit was "${correctAnswer}". Make it funny, sarcastic, and Reddit-style. Keep it under 100 words and make it playful and witty with a lot of passive aggressiveness.`;
     
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',

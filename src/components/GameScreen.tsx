@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { ArrowRight, Home, Volume2, Heart, Meh, Frown, Angry, Skull } from 'lucide-react';
+import { ArrowRight, Home, Volume2, Heart, Meh, Frown, Angry, Skull, AlertCircle } from 'lucide-react';
 import { generateComment, generateRoast, generateSpeech, generateMultipleChoiceOptions, saveCringeRating, saveScore } from '../services/api';
 
 export default function GameScreen() {
@@ -11,6 +11,7 @@ export default function GameScreen() {
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     if (!state.gameStarted) {
@@ -22,6 +23,8 @@ export default function GameScreen() {
 
   const loadNewQuestion = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
+    setError('');
+    
     try {
       // Fetch real Reddit comment
       const comment = await generateComment();
@@ -32,6 +35,7 @@ export default function GameScreen() {
       dispatch({ type: 'SET_OPTIONS', payload: options });
     } catch (error) {
       console.error('Error loading question:', error);
+      setError('Failed to load Reddit comments. Please check your internet connection and Reddit API configuration.');
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
@@ -96,6 +100,7 @@ export default function GameScreen() {
     setSelectedAnswer('');
     setShowResult(false);
     setIsCorrect(false);
+    setError('');
     dispatch({ type: 'NEXT_QUESTION' });
     loadNewQuestion();
   };
@@ -150,7 +155,35 @@ export default function GameScreen() {
         <div className="backdrop-blur-lg bg-white/10 rounded-3xl p-8 shadow-2xl border border-white/20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-            <p className="text-white text-lg">Loading your challenge...</p>
+            <p className="text-white text-lg">Fetching fresh Reddit content...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="backdrop-blur-lg bg-white/10 rounded-3xl p-8 shadow-2xl border border-white/20 max-w-md">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-4">Connection Error</h2>
+            <p className="text-gray-300 mb-6">{error}</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={loadNewQuestion}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all duration-200"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all duration-200"
+              >
+                Back to Home
+              </button>
+            </div>
           </div>
         </div>
       </div>
