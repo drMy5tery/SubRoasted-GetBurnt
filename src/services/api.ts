@@ -105,8 +105,9 @@ export async function generateSpeech(text: string): Promise<string> {
   try {
     const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
     
-    if (!apiKey) {
-      throw new Error('ElevenLabs API key not configured');
+    if (!apiKey || apiKey.trim() === '' || apiKey === 'your_elevenlabs_api_key_here') {
+      console.log('ElevenLabs API key not configured - skipping speech generation');
+      return '';
     }
     
     // Using Rachel voice (voice_id for a sarcastic female voice)
@@ -117,7 +118,7 @@ export async function generateSpeech(text: string): Promise<string> {
       headers: {
         'Accept': 'audio/mpeg',
         'Content-Type': 'application/json',
-        'xi-api-key': apiKey
+        'xi-api-key': apiKey.trim()
       },
       body: JSON.stringify({
         text: text,
@@ -132,7 +133,15 @@ export async function generateSpeech(text: string): Promise<string> {
     });
     
     if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`ElevenLabs API error ${response.status}:`, errorText);
+      
+      if (response.status === 401) {
+        console.error('ElevenLabs API key is invalid or expired. Please check your API key in the .env file.');
+      }
+      
+      // Don't throw error - just return empty string so the game continues
+      return '';
     }
     
     const audioBlob = await response.blob();

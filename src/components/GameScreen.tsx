@@ -30,25 +30,27 @@ export default function GameScreen() {
   // Cleanup audio when component unmounts or question changes
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-        audioRef.current = null;
-      }
+      cleanupAudio();
     };
   }, [state.totalQuestions]);
+
+  const cleanupAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.src = '';
+      audioRef.current.load(); // Force cleanup
+      audioRef.current = null;
+    }
+    setIsPlaying(false);
+  };
 
   const loadNewQuestion = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     setError('');
     
     // Stop any playing audio when loading new question
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current = null;
-    }
-    setIsPlaying(false);
+    cleanupAudio();
     setRoastPlayCount(0);
     setSpamClickCount(0);
     
@@ -112,7 +114,7 @@ export default function GameScreen() {
         // Generate speech for the roast
         setIsGeneratingSpeech(true);
         const audioUrl = await generateSpeech(roast);
-        if (audioUrl) {
+        if (audioUrl && audioUrl.length > 0) {
           dispatch({ type: 'SET_AUDIO_URL', payload: audioUrl });
           
           // Auto-play the roast
@@ -153,13 +155,8 @@ export default function GameScreen() {
       }
     }
 
-    // Clean up audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current = null;
-    }
-    setIsPlaying(false);
+    // Clean up audio completely
+    cleanupAudio();
 
     setSelectedAnswer('');
     setShowResult(false);
