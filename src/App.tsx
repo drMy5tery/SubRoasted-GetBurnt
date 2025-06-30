@@ -1,15 +1,27 @@
-import React from 'react'
-import { GameProvider } from './contexts/GameContext'
-import GameInterface from './components/GameInterface'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { GameProvider } from './context/GameContext';
+import HomeScreen from './components/HomeScreen';
+import GameScreen from './components/GameScreen';
+import LeaderboardScreen from './components/LeaderboardScreen';
+import StatsScreen from './components/StatsScreen';
+import './index.css';
 
 function App() {
   return (
     <GameProvider>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <GameInterface />
-      </div>
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+          <Routes>
+            <Route path="/" element={<HomeScreen />} />
+            <Route path="/game" element={<GameScreen />} />
+            <Route path="/leaderboard" element={<LeaderboardScreen />} />
+            <Route path="/stats" element={<StatsScreen />} />
+          </Routes>
+        </div>
+      </Router>
     </GameProvider>
-  )
+  );
 }
 
-export default App
+export default App;
