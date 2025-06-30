@@ -22,11 +22,11 @@ export async function generateComment(): Promise<Comment> {
   try {
     const { redditClient } = await import('./reddit-api');
     const comment = await redditClient.fetchRandomComment();
-    console.log('Successfully fetched real Reddit comment from r/' + comment.subreddit);
     return comment;
   } catch (error) {
     console.error('Reddit API failed:', error);
-    throw new Error('Unable to fetch Reddit comments. Please check your Reddit API configuration.');
+    // This error should not occur now since reddit-api.ts has fallback system
+    throw new Error('Unable to fetch comments. Please try again.');
   }
 }
 
