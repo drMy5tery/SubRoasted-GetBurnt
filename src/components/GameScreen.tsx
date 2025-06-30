@@ -16,6 +16,8 @@ export default function GameScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [roastPlayCount, setRoastPlayCount] = useState(0);
   const [spamClickCount, setSpamClickCount] = useState(0);
+  const [currentRoastLevel, setCurrentRoastLevel] = useState(1);
+  const [wrongGuess, setWrongGuess] = useState('');
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -53,6 +55,8 @@ export default function GameScreen() {
     cleanupAudio();
     setRoastPlayCount(0);
     setSpamClickCount(0);
+    setCurrentRoastLevel(1);
+    setWrongGuess('');
     
     try {
       // Fetch real Reddit comment
@@ -101,15 +105,18 @@ export default function GameScreen() {
     if (correct) {
       dispatch({ type: 'INCREMENT_SCORE' });
     } else {
+      setWrongGuess(answer);
       // Generate and play roast for wrong answers
       setIsGeneratingRoast(true);
       try {
         const roast = await generateRoast(
           state.currentComment?.text || '', 
           answer, 
-          state.correctSubreddit
+          state.correctSubreddit,
+          1 // Initial roast level
         );
         dispatch({ type: 'SET_ROAST', payload: roast });
+        setCurrentRoastLevel(1);
         
         // Generate speech for the roast
         setIsGeneratingSpeech(true);
@@ -201,36 +208,146 @@ export default function GameScreen() {
     }
   };
 
-  const handlePlayRoast = () => {
-    if (roastPlayCount >= 2) {
-      // Increment spam click count for the coal message
+  const getPlayButtonText = () => {
+    if (spamClickCount >= 100) {
+      return "Stop It Get Some Help - Michael Jordan (England America President) 🏀";
+    }
+    if (spamClickCount >= 85) {
+      return "Still you Got no Child Support 💸";
+    }
+    if (spamClickCount >= 65) {
+      return "And Yet you were Adopted 👶";
+    }
+    if (spamClickCount >= 50) {
+      return "No Wonder Your Parents got Divorced 💔";
+    }
+    if (spamClickCount >= 35) {
+      return "Bro Touch Some Grass 🌱";
+    }
+    if (spamClickCount >= 20) {
+      return "Bruhh!!! Get A Life 😤";
+    }
+    if (roastPlayCount >= 4) {
+      return "You're Burnt AF 🔥";
+    }
+    if (roastPlayCount >= 3) {
+      return "Wanna Get Cooked Again? 🍳";
+    }
+    if (roastPlayCount >= 1) {
+      return "Get Cooked Again? 🔥";
+    }
+    return "Play Roast 🎵";
+  };
+
+  const getPlayButtonStyle = () => {
+    if (spamClickCount >= 100) {
+      return "text-purple-600 bg-purple-500/10 border-purple-500/30 cursor-not-allowed text-xs";
+    }
+    if (spamClickCount >= 85) {
+      return "text-pink-600 bg-pink-500/10 border-pink-500/30 cursor-not-allowed";
+    }
+    if (spamClickCount >= 65) {
+      return "text-indigo-600 bg-indigo-500/10 border-indigo-500/30 cursor-not-allowed";
+    }
+    if (spamClickCount >= 50) {
+      return "text-red-600 bg-red-500/10 border-red-500/30 cursor-not-allowed";
+    }
+    if (spamClickCount >= 35) {
+      return "text-green-600 bg-green-500/10 border-green-500/30 cursor-not-allowed";
+    }
+    if (spamClickCount >= 20) {
+      return "text-yellow-600 bg-yellow-500/10 border-yellow-500/30 cursor-not-allowed";
+    }
+    if (roastPlayCount >= 4) {
+      return "text-orange-600 bg-orange-500/10 border-orange-500/30 cursor-not-allowed";
+    }
+    return "text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30";
+  };
+
+  const handlePlayRoast = async () => {
+    // Handle spam clicks after 4 roast plays
+    if (roastPlayCount >= 4) {
       setSpamClickCount(prev => prev + 1);
       return;
     }
 
     if (state.audioURL && state.audioURL.length > 0 && !isPlaying) {
-      // Stop any existing audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
+      // For subsequent plays (2nd, 3rd, 4th), generate new roasts
+      if (roastPlayCount >= 1 && roastPlayCount < 4) {
+        setIsGeneratingRoast(true);
+        setIsGeneratingSpeech(true);
+        
+        try {
+          const nextRoastLevel = roastPlayCount + 1;
+          const newRoast = await generateRoast(
+            state.currentComment?.text || '', 
+            wrongGuess, 
+            state.correctSubreddit,
+            nextRoastLevel
+          );
+          
+          dispatch({ type: 'SET_ROAST', payload: newRoast });
+          setCurrentRoastLevel(nextRoastLevel);
+          
+          // Generate new speech
+          const audioUrl = await generateSpeech(newRoast);
+          if (audioUrl && audioUrl.length > 0) {
+            dispatch({ type: 'SET_AUDIO_URL', payload: audioUrl });
+            
+            // Stop any existing audio
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.src = '';
+            }
 
-      const audio = new Audio(state.audioURL);
-      audioRef.current = audio;
-      
-      audio.onended = () => {
-        setIsPlaying(false);
-      };
-      
-      audio.onerror = () => {
-        console.error('Error playing audio:', audio.error);
-        setIsPlaying(false);
-      };
-      
-      setIsPlaying(true);
-      setRoastPlayCount(prev => prev + 1);
-      
-      playAudioWhenReady(audio);
+            const audio = new Audio(audioUrl);
+            audioRef.current = audio;
+            
+            audio.onended = () => {
+              setIsPlaying(false);
+            };
+            
+            audio.onerror = () => {
+              console.error('Error playing audio:', audio.error);
+              setIsPlaying(false);
+            };
+            
+            setIsPlaying(true);
+            setRoastPlayCount(prev => prev + 1);
+            
+            playAudioWhenReady(audio);
+          }
+        } catch (error) {
+          console.error('Error generating new roast:', error);
+        } finally {
+          setIsGeneratingRoast(false);
+          setIsGeneratingSpeech(false);
+        }
+      } else {
+        // First play - just play existing audio
+        // Stop any existing audio
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.src = '';
+        }
+
+        const audio = new Audio(state.audioURL);
+        audioRef.current = audio;
+        
+        audio.onended = () => {
+          setIsPlaying(false);
+        };
+        
+        audio.onerror = () => {
+          console.error('Error playing audio:', audio.error);
+          setIsPlaying(false);
+        };
+        
+        setIsPlaying(true);
+        setRoastPlayCount(prev => prev + 1);
+        
+        playAudioWhenReady(audio);
+      }
     }
   };
 
@@ -240,29 +357,6 @@ export default function GameScreen() {
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
     }
-  };
-
-  const getPlayButtonText = () => {
-    if (spamClickCount >= 3) {
-      return "Chat does he wants to get darker than the coal that powers his house? 💀";
-    }
-    if (roastPlayCount >= 2) {
-      return "You're Burnt AF 🔥";
-    }
-    if (roastPlayCount >= 1) {
-      return "Get Cooked Again? 🍳";
-    }
-    return "Play Roast 🎵";
-  };
-
-  const getPlayButtonStyle = () => {
-    if (spamClickCount >= 3) {
-      return "text-red-600 bg-red-500/10 border-red-500/30 cursor-not-allowed";
-    }
-    if (roastPlayCount >= 2) {
-      return "text-orange-600 bg-orange-500/10 border-orange-500/30 cursor-not-allowed";
-    }
-    return "text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30";
   };
 
   if (state.loading) {
@@ -387,7 +481,7 @@ export default function GameScreen() {
             {!isCorrect && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-6">
                 <h4 className="text-red-400 font-bold mb-2 flex items-center">
-                  🔥 AI Roast:
+                  🔥 AI Roast (Level {currentRoastLevel}):
                   {isGeneratingRoast && (
                     <div className="ml-2 animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
                   )}
@@ -408,22 +502,16 @@ export default function GameScreen() {
                         </div>
                       ) : state.audioURL && state.audioURL.length > 0 ? (
                         <div className="flex items-center gap-2 flex-wrap">
-                          {spamClickCount >= 3 ? (
-                            <div className={`px-4 py-2 rounded-lg border transition-colors ${getPlayButtonStyle()}`}>
-                              <span className="text-sm font-medium">{getPlayButtonText()}</span>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={handlePlayRoast}
-                              disabled={roastPlayCount >= 2 || isPlaying}
-                              className={`flex items-center transition-colors px-4 py-2 rounded-lg border ${getPlayButtonStyle()}`}
-                            >
-                              <Volume2 className="w-4 h-4 mr-2" />
-                              <span className="text-sm font-medium">
-                                {isPlaying ? 'Playing...' : getPlayButtonText()}
-                              </span>
-                            </button>
-                          )}
+                          <button
+                            onClick={handlePlayRoast}
+                            disabled={isPlaying || (roastPlayCount >= 4 && spamClickCount >= 100)}
+                            className={`flex items-center transition-colors px-4 py-2 rounded-lg border ${getPlayButtonStyle()}`}
+                          >
+                            <Volume2 className="w-4 h-4 mr-2" />
+                            <span className="text-sm font-medium">
+                              {isPlaying ? 'Playing...' : getPlayButtonText()}
+                            </span>
+                          </button>
                           
                           {isPlaying && (
                             <button

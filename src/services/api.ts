@@ -43,7 +43,7 @@ export function generateMultipleChoiceOptions(correctSubreddit: string): string[
   return allOptions.sort(() => Math.random() - 0.5);
 }
 
-export async function generateRoast(comment: string, wrongGuess: string, correctAnswer: string): Promise<string> {
+export async function generateRoast(comment: string, wrongGuess: string, correctAnswer: string, roastLevel: number = 1): Promise<string> {
   try {
     const apiKey = import.meta.env.VITE_GROQ_API_KEY;
     
@@ -51,7 +51,38 @@ export async function generateRoast(comment: string, wrongGuess: string, correct
       throw new Error('Groq API key not configured');
     }
     
-    const prompt = `Roast someone who guessed "${wrongGuess}" when the correct subreddit was "${correctAnswer}". Make it funny, sarcastic, and Reddit-style. Keep it under 100 words and make it playful and witty with a lot of passive aggressiveness.`;
+    let prompt = '';
+    let systemPrompt = '';
+    
+    switch (roastLevel) {
+      case 1:
+        // Initial roast for wrong guess
+        prompt = `Roast someone who guessed "${wrongGuess}" when the correct subreddit was "${correctAnswer}". Make it funny, sarcastic, and Reddit-style. Keep it under 100 words and make it playful and witty with a lot of passive aggressiveness.`;
+        systemPrompt = 'You are a witty, sarcastic AI that roasts people for wrong Reddit guesses. Be funny but not mean. Use Reddit slang and internet humor.';
+        break;
+        
+      case 2:
+        // Second roast for clicking play again
+        prompt = `This person just clicked "Play Roast Again" after getting roasted for guessing wrong. They want to hear their roast again! Roast them for being a masochist who enjoys getting burned. Make it funny and sarcastic about why they're replaying their own roast.`;
+        systemPrompt = 'You are a sarcastic AI roasting someone for wanting to hear their roast again. Be witty about their masochistic tendencies.';
+        break;
+        
+      case 3:
+        // Third roast for "Wanna Get Cooked Again?"
+        prompt = `This person has now clicked the roast button 3 times! They clearly enjoy getting roasted. Make fun of them for being addicted to getting burned and coming back for more punishment. Be sarcastic about their apparent love for digital abuse.`;
+        systemPrompt = 'You are roasting someone who keeps coming back for more roasts. They clearly love getting burned. Be sarcastic about their addiction to getting roasted.';
+        break;
+        
+      case 4:
+        // Final roast for "You're Burnt AF"
+        prompt = `This person has clicked the roast button 4 times now! They are completely burnt and still asking for more. Give them the ultimate final roast about being absolutely destroyed and still coming back. Make it the most savage but funny roast yet.`;
+        systemPrompt = 'You are delivering the final, most savage roast to someone who has been completely destroyed but keeps coming back. Make it epic and final.';
+        break;
+        
+      default:
+        prompt = `Roast someone who guessed "${wrongGuess}" when the correct subreddit was "${correctAnswer}". Make it funny, sarcastic, and Reddit-style.`;
+        systemPrompt = 'You are a witty, sarcastic AI that roasts people for wrong Reddit guesses.';
+    }
     
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -64,7 +95,7 @@ export async function generateRoast(comment: string, wrongGuess: string, correct
         messages: [
           {
             role: 'system',
-            content: 'You are a witty, sarcastic AI that roasts people for wrong Reddit guesses. Be funny but not mean. Use Reddit slang and internet humor.'
+            content: systemPrompt
           },
           {
             role: 'user',
@@ -88,16 +119,32 @@ export async function generateRoast(comment: string, wrongGuess: string, correct
   } catch (error) {
     console.error('Error generating roast:', error);
     
-    // Fallback roasts if API fails
-    const fallbackRoasts = [
-      `Really? You thought that comment belonged in r/${wrongGuess}? That's about as accurate as a weather forecast from a magic 8-ball.`,
-      `Oh honey, guessing r/${wrongGuess} for that comment is like bringing a spoon to a knife fight - completely missing the point.`,
-      `I've seen GPS systems with better navigation skills than your guess of r/${wrongGuess}. The correct answer was right there!`,
-      `That guess was so off, even autocorrect wouldn't have made that mistake. r/${correctAnswer} was the obvious choice!`,
-      `Congratulations! You've just proven that even a broken clock is right twice a day, but you're not even close to that accuracy.`
-    ];
+    // Fallback roasts based on level
+    const fallbackRoasts = {
+      1: [
+        `Really? You thought that comment belonged in r/${wrongGuess}? That's about as accurate as a weather forecast from a magic 8-ball.`,
+        `Oh honey, guessing r/${wrongGuess} for that comment is like bringing a spoon to a knife fight - completely missing the point.`,
+        `I've seen GPS systems with better navigation skills than your guess of r/${wrongGuess}. The correct answer was right there!`,
+      ],
+      2: [
+        `Oh, you want to hear that roast again? Someone clearly enjoys the taste of their own digital destruction!`,
+        `Clicking replay on your own roast? That's some next-level masochism right there!`,
+        `You're really going back for seconds on that burn? Bold strategy, Cotton.`,
+      ],
+      3: [
+        `Three times now? You're officially addicted to getting roasted. Should I call digital rehab?`,
+        `At this point you're not getting roasted, you're getting slow-cooked to perfection!`,
+        `Third time's the charm? More like third time's the self-inflicted digital abuse!`,
+      ],
+      4: [
+        `FOUR TIMES?! You're not just burnt, you're charcoal at this point! There's nothing left to roast!`,
+        `Congratulations, you've achieved maximum roast saturation. You're officially well-done!`,
+        `You've been roasted so many times, Gordon Ramsay would be proud of how well-done you are!`,
+      ]
+    };
     
-    return fallbackRoasts[Math.floor(Math.random() * fallbackRoasts.length)];
+    const levelRoasts = fallbackRoasts[roastLevel as keyof typeof fallbackRoasts] || fallbackRoasts[1];
+    return levelRoasts[Math.floor(Math.random() * levelRoasts.length)];
   }
 }
 
