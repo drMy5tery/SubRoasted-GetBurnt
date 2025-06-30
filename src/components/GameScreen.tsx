@@ -481,7 +481,7 @@ export default function GameScreen() {
             {!isCorrect && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-6">
                 <h4 className="text-red-400 font-bold mb-2 flex items-center">
-                  🔥 AI Roast (Level {currentRoastLevel}):
+                  🔥 AI Roast:
                   {isGeneratingRoast && (
                     <div className="ml-2 animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
                   )}
@@ -525,7 +525,7 @@ export default function GameScreen() {
                         </div>
                       ) : (
                         <p className="text-gray-400 text-sm">
-                          🎵 Add your ElevenLabs API key to hear this roast!
+                          🎵 Audio playback temporarily disabled
                         </p>
                       )}
                     </div>

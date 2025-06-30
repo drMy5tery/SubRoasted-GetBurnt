@@ -149,58 +149,9 @@ export async function generateRoast(comment: string, wrongGuess: string, correct
 }
 
 export async function generateSpeech(text: string): Promise<string> {
-  try {
-    const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
-    
-    if (!apiKey || apiKey.trim() === '' || apiKey === 'your_elevenlabs_api_key_here') {
-      console.log('ElevenLabs API key not configured - skipping speech generation');
-      return '';
-    }
-    
-    // Using Rachel voice (voice_id for a sarcastic female voice)
-    const voiceId = '21m00Tcm4TlvDq8ikWAM'; // Rachel voice ID
-    
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': apiKey.trim()
-      },
-      body: JSON.stringify({
-        text: text,
-        model_id: 'eleven_monolingual_v1',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.5,
-          style: 0.5,
-          use_speaker_boost: true
-        }
-      })
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`ElevenLabs API error ${response.status}:`, errorText);
-      
-      if (response.status === 401) {
-        console.error('ElevenLabs API key is invalid or expired. Please check your API key in the .env file.');
-      }
-      
-      // Don't throw error - just return empty string so the game continues
-      return '';
-    }
-    
-    const audioBlob = await response.blob();
-    return URL.createObjectURL(audioBlob);
-    
-  } catch (error) {
-    console.error('Error generating speech:', error);
-    
-    // Return empty string if speech generation fails
-    // The UI will handle this gracefully by not showing the audio player
-    return '';
-  }
+  // Temporarily disabled - return empty string to skip audio functionality
+  console.log('Speech generation disabled - would have generated audio for:', text);
+  return '';
 }
 
 export async function saveCringeRating(commentId: string, rating: number, username: string): Promise<void> {
