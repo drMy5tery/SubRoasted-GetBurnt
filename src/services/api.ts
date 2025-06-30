@@ -18,7 +18,7 @@ const POPULAR_SUBREDDITS = [
   'wholesomememes', 'cats', 'dogs', 'programming', 'learnprogramming'
 ];
 
-// Fallback mock comments for when the edge function fails
+// Expanded mock comments for better gameplay variety
 const MOCK_COMMENTS: Comment[] = [
   {
     id: 'mock1',
@@ -89,35 +89,87 @@ const MOCK_COMMENTS: Comment[] = [
     subreddit: 'LifeProTips',
     score: 7890,
     author: 'MindfulHelper'
+  },
+  {
+    id: 'mock11',
+    text: "I've been learning Python for 3 months and I still Google how to reverse a list every single time. At what point do I stop being a beginner?",
+    subreddit: 'learnprogramming',
+    score: 2156,
+    author: 'CodeNewbie2024'
+  },
+  {
+    id: 'mock12',
+    text: "My girlfriend said she wanted to 'Netflix and chill' but then actually wanted to watch Netflix and chill. I'm so confused by modern dating.",
+    subreddit: 'relationships',
+    score: 4321,
+    author: 'ConfusedBoyfriend'
+  },
+  {
+    id: 'mock13',
+    text: "Why do people put milk in their tea BEFORE the tea bag? That's like putting your shoes on before your socks. Absolute madness.",
+    subreddit: 'Showerthoughts',
+    score: 6789,
+    author: 'TeaPhilosopher'
+  },
+  {
+    id: 'mock14',
+    text: "I just realized I've been pronouncing 'epitome' wrong my entire life. I thought it was 'epi-tome' not 'eh-pit-oh-me'. I'm 28 years old.",
+    subreddit: 'todayilearned',
+    score: 9876,
+    author: 'WordsAreHard'
+  },
+  {
+    id: 'mock15',
+    text: "My dog learned to open doors and now he thinks he owns the place. He literally walked into my room, stared at me, and walked out. The audacity.",
+    subreddit: 'dogs',
+    score: 5432,
+    author: 'DogParentLife'
+  },
+  {
+    id: 'mock16',
+    text: "I spent $200 on a mechanical keyboard and now I can't stop typing random things just to hear the clicks. My productivity has never been lower.",
+    subreddit: 'technology',
+    score: 3210,
+    author: 'ClickyKeys'
+  },
+  {
+    id: 'mock17',
+    text: "Unpopular opinion: Cereal is better with warm milk. Cold milk makes my teeth hurt and warm milk makes the cereal taste better.",
+    subreddit: 'unpopularopinion',
+    score: 987,
+    author: 'WarmMilkFan'
+  },
+  {
+    id: 'mock18',
+    text: "I accidentally liked my ex's Instagram post from 2019 while stalking their profile. Do I unlike it and look obvious, or leave it and look creepy?",
+    subreddit: 'relationships',
+    score: 7654,
+    author: 'SocialMediaFail'
+  },
+  {
+    id: 'mock19',
+    text: "The boss fight in Elden Ring took me 47 tries. FORTY. SEVEN. I'm not even embarrassed anymore, I'm impressed by my own persistence.",
+    subreddit: 'gaming',
+    score: 8765,
+    author: 'PersistentGamer'
+  },
+  {
+    id: 'mock20',
+    text: "I made homemade pasta for the first time and it looked like abstract art. Tasted amazing though, so I'm calling it 'deconstructed fettuccine'.",
+    subreddit: 'food',
+    score: 2468,
+    author: 'ChefInTraining'
   }
 ];
 
 export async function generateComment(): Promise<Comment> {
-  try {
-    // Try to fetch from Supabase Edge Function first
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    
-    if (supabaseUrl) {
-      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-reddit-comment`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const comment = await response.json();
-        return comment;
-      } else {
-        console.warn('Edge function failed, falling back to mock data');
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching real comment:', error);
-  }
-
-  // Fallback to mock data
+  // Always use mock data for reliability
+  // The edge function approach was causing 403 errors from Reddit's anti-bot protection
+  console.log('Using mock comment data for reliable gameplay');
+  
+  // Add a small delay to simulate API call
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
   return MOCK_COMMENTS[Math.floor(Math.random() * MOCK_COMMENTS.length)];
 }
 
