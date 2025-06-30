@@ -68,6 +68,28 @@ export default function GameScreen() {
     }
   };
 
+  const playAudioWhenReady = (audio: HTMLAudioElement) => {
+    const attemptPlay = () => {
+      if (audio.readyState >= 4) {
+        // Audio has enough data to play
+        audio.play().catch(error => {
+          console.error('Error playing audio:', error);
+          setIsPlaying(false);
+        });
+      } else {
+        // Wait for audio to be ready
+        audio.addEventListener('canplaythrough', () => {
+          audio.play().catch(error => {
+            console.error('Error playing audio:', error);
+            setIsPlaying(false);
+          });
+        }, { once: true });
+      }
+    };
+
+    attemptPlay();
+  };
+
   const handleAnswerSelect = async (answer: string) => {
     setSelectedAnswer(answer);
     const correct = answer === state.correctSubreddit;
@@ -102,15 +124,12 @@ export default function GameScreen() {
           };
           
           audio.onerror = () => {
-            console.error('Error playing audio');
+            console.error('Error playing audio:', audio.error);
             setIsPlaying(false);
           };
           
           setIsPlaying(true);
-          audio.play().catch(error => {
-            console.error('Error playing audio:', error);
-            setIsPlaying(false);
-          });
+          playAudioWhenReady(audio);
         }
       } catch (error) {
         console.error('Error generating roast:', error);
@@ -207,17 +226,14 @@ export default function GameScreen() {
       };
       
       audio.onerror = () => {
-        console.error('Error playing audio');
+        console.error('Error playing audio:', audio.error);
         setIsPlaying(false);
       };
       
       setIsPlaying(true);
       setRoastPlayCount(prev => prev + 1);
       
-      audio.play().catch(error => {
-        console.error('Error playing audio:', error);
-        setIsPlaying(false);
-      });
+      playAudioWhenReady(audio);
     }
   };
 
