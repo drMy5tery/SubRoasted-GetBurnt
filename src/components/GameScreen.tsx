@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { ArrowRight, Home, Volume2, Heart, Meh, Frown, Angry, Skull, AlertCircle } from 'lucide-react';
+import { ArrowRight, Home, Volume2, Heart, Meh, Frown, Angry, Skull, AlertCircle, VolumeX } from 'lucide-react';
 import { generateComment, generateRoast, generateSpeech, generateMultipleChoiceOptions, saveCringeRating, saveScore } from '../services/api';
 
 export default function GameScreen() {
@@ -12,6 +12,8 @@ export default function GameScreen() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [error, setError] = useState<string>('');
+  const [isGeneratingRoast, setIsGeneratingRoast] = useState(false);
+  const [isGeneratingSpeech, setIsGeneratingSpeech] = useState(false);
 
   useEffect(() => {
     if (!state.gameStarted) {
@@ -51,6 +53,7 @@ export default function GameScreen() {
       dispatch({ type: 'INCREMENT_SCORE' });
     } else {
       // Generate and play roast for wrong answers
+      setIsGeneratingRoast(true);
       try {
         const roast = await generateRoast(
           state.currentComment?.text || '', 
@@ -60,6 +63,7 @@ export default function GameScreen() {
         dispatch({ type: 'SET_ROAST', payload: roast });
         
         // Generate speech for the roast
+        setIsGeneratingSpeech(true);
         const audioUrl = await generateSpeech(roast);
         if (audioUrl) {
           dispatch({ type: 'SET_AUDIO_URL', payload: audioUrl });
@@ -74,6 +78,9 @@ export default function GameScreen() {
       } catch (error) {
         console.error('Error generating roast:', error);
         dispatch({ type: 'SET_ROAST', payload: "Well, that wasn't right! Better luck next time." });
+      } finally {
+        setIsGeneratingRoast(false);
+        setIsGeneratingSpeech(false);
       }
     }
   };
@@ -146,6 +153,13 @@ export default function GameScreen() {
       audio.play().catch(error => {
         console.error('Error playing audio:', error);
       });
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
     }
   };
 
@@ -268,20 +282,54 @@ export default function GameScreen() {
             </div>
 
             {/* Roast Message */}
-            {!isCorrect && state.roastMessage && (
+            {!isCorrect && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-6">
-                <h4 className="text-red-400 font-bold mb-2">AI Roast:</h4>
-                <p className="text-white italic">"{state.roastMessage}"</p>
-                {state.audioURL && (
-                  <div className="mt-4">
-                    <button
-                      onClick={playRoastAudio}
-                      className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      <Volume2 className="w-5 h-5 mr-2" />
-                      Play Roast
-                    </button>
-                  </div>
+                <h4 className="text-red-400 font-bold mb-2 flex items-center">
+                  🔥 AI Roast:
+                  {isGeneratingRoast && (
+                    <div className="ml-2 animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
+                  )}
+                </h4>
+                
+                {isGeneratingRoast ? (
+                  <p className="text-gray-300 italic">Generating your personalized roast...</p>
+                ) : state.roastMessage ? (
+                  <>
+                    <p className="text-white italic mb-4">"{state.roastMessage}"</p>
+                    
+                    {/* Audio Controls */}
+                    <div className="flex items-center gap-4">
+                      {isGeneratingSpeech ? (
+                        <div className="flex items-center text-blue-400">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2"></div>
+                          Generating speech...
+                        </div>
+                      ) : state.audioURL ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={playRoastAudio}
+                            className="flex items-center text-blue-400 hover:text-blue-300 transition-colors px-3 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20"
+                          >
+                            <Volume2 className="w-4 h-4 mr-2" />
+                            Play Roast
+                          </button>
+                          <button
+                            onClick={stopAudio}
+                            className="flex items-center text-gray-400 hover:text-gray-300 transition-colors px-3 py-2 rounded-lg bg-gray-500/10 hover:bg-gray-500/20"
+                          >
+                            <VolumeX className="w-4 h-4 mr-2" />
+                            Stop
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm">
+                          🎵 Add your ElevenLabs API key to hear this roast!
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-gray-300 italic">🤖 Add your Groq API key to get roasted!</p>
                 )}
               </div>
             )}
@@ -296,8 +344,8 @@ export default function GameScreen() {
                     onClick={() => handleCringeRating(rating)}
                     className={`p-3 rounded-full transition-all duration-200 ${
                       state.cringeRating === rating
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                        ? 'bg-purple-500 text-white transform scale-110'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20 hover:scale-105'
                     }`}
                     title={getCringeLabel(rating)}
                   >
