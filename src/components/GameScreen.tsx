@@ -197,10 +197,10 @@ export default function GameScreen() {
     if (roastPlayCount >= 3) {
       return "Wanna Get Cooked Again? 🍳";
     }
-    if (roastPlayCount >= 1) {
+    if (roastPlayCount >= 2) {
       return "Get Cooked Again? 🔥";
     }
-    return "Play Roast 🎵";
+    return "Play Roast Again 🎵";
   };
 
   const getPlayButtonStyle = () => {
@@ -235,8 +235,8 @@ export default function GameScreen() {
       return;
     }
 
-    // For subsequent plays (2nd, 3rd, 4th), generate new roasts
-    if (roastPlayCount >= 1 && roastPlayCount < 4) {
+    // Always make API call for the first 4 clicks
+    if (roastPlayCount < 4) {
       setIsGeneratingRoast(true);
       setIsGeneratingSpeech(true);
       
@@ -267,9 +267,6 @@ export default function GameScreen() {
         setIsGeneratingRoast(false);
         setIsGeneratingSpeech(false);
       }
-    } else {
-      // First play - just increment counter (no actual audio)
-      setRoastPlayCount(prev => prev + 1);
     }
   };
 
