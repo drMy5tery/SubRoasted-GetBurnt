@@ -141,7 +141,7 @@ class RedditAPIClient {
               commentData.body !== '[removed]' &&
               commentData.body.length > 50 &&
               commentData.body.length < 500 &&
-              commentData.score > 5 &&
+              commentData.score > 0 &&
               commentData.author !== '[deleted]' &&
               !commentData.stickied &&
               !commentData.body.includes('http') && // Avoid comments with links
