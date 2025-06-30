@@ -74,28 +74,6 @@ export default function GameScreen() {
     }
   };
 
-  const playAudioWhenReady = (audio: HTMLAudioElement) => {
-    const attemptPlay = () => {
-      if (audio.readyState >= 4) {
-        // Audio has enough data to play
-        audio.play().catch(error => {
-          console.error('Error playing audio:', error);
-          setIsPlaying(false);
-        });
-      } else {
-        // Wait for audio to be ready
-        audio.addEventListener('canplaythrough', () => {
-          audio.play().catch(error => {
-            console.error('Error playing audio:', error);
-            setIsPlaying(false);
-          });
-        }, { once: true });
-      }
-    };
-
-    attemptPlay();
-  };
-
   const handleAnswerSelect = async (answer: string) => {
     setSelectedAnswer(answer);
     const correct = answer === state.correctSubreddit;
@@ -118,27 +96,13 @@ export default function GameScreen() {
         dispatch({ type: 'SET_ROAST', payload: roast });
         setCurrentRoastLevel(1);
         
-        // Generate speech for the roast
+        // Generate speech for the roast (but it will return empty string)
         setIsGeneratingSpeech(true);
         const audioUrl = await generateSpeech(roast);
         if (audioUrl && audioUrl.length > 0) {
           dispatch({ type: 'SET_AUDIO_URL', payload: audioUrl });
-          
-          // Auto-play the roast
-          const audio = new Audio(audioUrl);
-          audioRef.current = audio;
-          
-          audio.onended = () => {
-            setIsPlaying(false);
-          };
-          
-          audio.onerror = () => {
-            console.error('Error playing audio:', audio.error);
-            setIsPlaying(false);
-          };
-          
-          setIsPlaying(true);
-          playAudioWhenReady(audio);
+          // Audio functionality is disabled, so we just simulate it
+          setIsPlaying(false);
         }
       } catch (error) {
         console.error('Error generating roast:', error);
@@ -271,92 +235,47 @@ export default function GameScreen() {
       return;
     }
 
-    if (state.audioURL && state.audioURL.length > 0 && !isPlaying) {
-      // For subsequent plays (2nd, 3rd, 4th), generate new roasts
-      if (roastPlayCount >= 1 && roastPlayCount < 4) {
-        setIsGeneratingRoast(true);
-        setIsGeneratingSpeech(true);
+    // For subsequent plays (2nd, 3rd, 4th), generate new roasts
+    if (roastPlayCount >= 1 && roastPlayCount < 4) {
+      setIsGeneratingRoast(true);
+      setIsGeneratingSpeech(true);
+      
+      try {
+        const nextRoastLevel = roastPlayCount + 1;
+        const newRoast = await generateRoast(
+          state.currentComment?.text || '', 
+          wrongGuess, 
+          state.correctSubreddit,
+          nextRoastLevel
+        );
         
-        try {
-          const nextRoastLevel = roastPlayCount + 1;
-          const newRoast = await generateRoast(
-            state.currentComment?.text || '', 
-            wrongGuess, 
-            state.correctSubreddit,
-            nextRoastLevel
-          );
-          
-          dispatch({ type: 'SET_ROAST', payload: newRoast });
-          setCurrentRoastLevel(nextRoastLevel);
-          
-          // Generate new speech
-          const audioUrl = await generateSpeech(newRoast);
-          if (audioUrl && audioUrl.length > 0) {
-            dispatch({ type: 'SET_AUDIO_URL', payload: audioUrl });
-            
-            // Stop any existing audio
-            if (audioRef.current) {
-              audioRef.current.pause();
-              audioRef.current.src = '';
-            }
-
-            const audio = new Audio(audioUrl);
-            audioRef.current = audio;
-            
-            audio.onended = () => {
-              setIsPlaying(false);
-            };
-            
-            audio.onerror = () => {
-              console.error('Error playing audio:', audio.error);
-              setIsPlaying(false);
-            };
-            
-            setIsPlaying(true);
-            setRoastPlayCount(prev => prev + 1);
-            
-            playAudioWhenReady(audio);
-          }
-        } catch (error) {
-          console.error('Error generating new roast:', error);
-        } finally {
-          setIsGeneratingRoast(false);
-          setIsGeneratingSpeech(false);
+        dispatch({ type: 'SET_ROAST', payload: newRoast });
+        setCurrentRoastLevel(nextRoastLevel);
+        
+        // Generate new speech (but it will return empty string)
+        const audioUrl = await generateSpeech(newRoast);
+        if (audioUrl && audioUrl.length > 0) {
+          dispatch({ type: 'SET_AUDIO_URL', payload: audioUrl });
+          // Audio functionality is disabled
         }
-      } else {
-        // First play - just play existing audio
-        // Stop any existing audio
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.src = '';
-        }
-
-        const audio = new Audio(state.audioURL);
-        audioRef.current = audio;
         
-        audio.onended = () => {
-          setIsPlaying(false);
-        };
-        
-        audio.onerror = () => {
-          console.error('Error playing audio:', audio.error);
-          setIsPlaying(false);
-        };
-        
-        setIsPlaying(true);
         setRoastPlayCount(prev => prev + 1);
         
-        playAudioWhenReady(audio);
+      } catch (error) {
+        console.error('Error generating new roast:', error);
+      } finally {
+        setIsGeneratingRoast(false);
+        setIsGeneratingSpeech(false);
       }
+    } else {
+      // First play - just increment counter (no actual audio)
+      setRoastPlayCount(prev => prev + 1);
     }
   };
 
   const stopAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-    }
+    // Audio functionality is disabled, but keep the button for UI consistency
+    setIsPlaying(false);
   };
 
   if (state.loading) {
@@ -500,7 +419,7 @@ export default function GameScreen() {
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2"></div>
                           Generating speech...
                         </div>
-                      ) : state.audioURL && state.audioURL.length > 0 ? (
+                      ) : (
                         <div className="flex items-center gap-2 flex-wrap">
                           <button
                             onClick={handlePlayRoast}
@@ -523,10 +442,6 @@ export default function GameScreen() {
                             </button>
                           )}
                         </div>
-                      ) : (
-                        <p className="text-gray-400 text-sm">
-                          🎵 Audio playback temporarily disabled
-                        </p>
                       )}
                     </div>
                   </>
