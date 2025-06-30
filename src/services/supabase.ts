@@ -31,6 +31,26 @@ export interface CringeRating {
   created_at: string;
 }
 
+export interface PlayerStats {
+  totalGames: number;
+  totalScore: number;
+  averageAccuracy: number;
+  bestStreak: number;
+  favoriteSubreddits: string[];
+  weakestSubreddits: string[];
+  totalPlayTime: number;
+  rank: number;
+}
+
+export interface CommunityStats {
+  totalPlayers: number;
+  totalGames: number;
+  hardestSubreddits: Array<{ name: string; accuracy: number }>;
+  easiestSubreddits: Array<{ name: string; accuracy: number }>;
+  mostPopularSubreddits: Array<{ name: string; count: number }>;
+  averageScore: number;
+}
+
 export async function saveGameScore(username: string, score: number, totalQuestions: number) {
   if (!supabase) {
     console.warn('Supabase not configured, skipping score save');
@@ -98,7 +118,99 @@ export async function saveCringeRatingToSupabase(commentId: string, userId: stri
   }
 }
 
-// Mock data fallback when Supabase is not configured
+export async function getPlayerStats(username: string): Promise<PlayerStats> {
+  if (!supabase) {
+    return getMockPlayerStats();
+  }
+
+  try {
+    // Get player's game history
+    const { data: games, error } = await supabase
+      .from('leaderboard')
+      .select('*')
+      .eq('username', username)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (!games || games.length === 0) {
+      return getMockPlayerStats();
+    }
+
+    // Calculate stats
+    const totalGames = games.length;
+    const totalScore = games.reduce((sum, game) => sum + game.score, 0);
+    const averageAccuracy = Math.round(games.reduce((sum, game) => sum + game.accuracy, 0) / totalGames);
+    
+    // Mock additional stats for now
+    return {
+      totalGames,
+      totalScore,
+      averageAccuracy,
+      bestStreak: Math.max(...games.map(g => g.score)),
+      favoriteSubreddits: ['AskReddit', 'explainlikeimfive', 'todayilearned'],
+      weakestSubreddits: ['programming', 'science', 'technology'],
+      totalPlayTime: totalGames * 5, // Estimate 5 minutes per game
+      rank: 1
+    };
+  } catch (error) {
+    console.error('Error fetching player stats:', error);
+    return getMockPlayerStats();
+  }
+}
+
+export async function getCommunityStats(): Promise<CommunityStats> {
+  if (!supabase) {
+    return getMockCommunityStats();
+  }
+
+  try {
+    // Get total players and games
+    const { data: leaderboard, error } = await supabase
+      .from('leaderboard')
+      .select('*');
+
+    if (error) throw error;
+
+    const uniquePlayers = new Set(leaderboard?.map(entry => entry.username) || []).size;
+    const totalGames = leaderboard?.length || 0;
+    const averageScore = leaderboard?.length 
+      ? Math.round(leaderboard.reduce((sum, entry) => sum + entry.accuracy, 0) / leaderboard.length)
+      : 0;
+
+    return {
+      totalPlayers: uniquePlayers,
+      totalGames,
+      averageScore,
+      hardestSubreddits: [
+        { name: 'programming', accuracy: 34 },
+        { name: 'science', accuracy: 38 },
+        { name: 'technology', accuracy: 42 },
+        { name: 'dataisbeautiful', accuracy: 45 },
+        { name: 'politics', accuracy: 48 }
+      ],
+      easiestSubreddits: [
+        { name: 'cats', accuracy: 89 },
+        { name: 'dogs', accuracy: 87 },
+        { name: 'aww', accuracy: 85 },
+        { name: 'funny', accuracy: 82 },
+        { name: 'memes', accuracy: 79 }
+      ],
+      mostPopularSubreddits: [
+        { name: 'AskReddit', count: 1250 },
+        { name: 'funny', count: 980 },
+        { name: 'AmItheAsshole', count: 875 },
+        { name: 'explainlikeimfive', count: 720 },
+        { name: 'todayilearned', count: 650 }
+      ]
+    };
+  } catch (error) {
+    console.error('Error fetching community stats:', error);
+    return getMockCommunityStats();
+  }
+}
+
+// Mock data fallbacks
 function getMockLeaderboard(): LeaderboardEntry[] {
   return [
     {
@@ -142,4 +254,46 @@ function getMockLeaderboard(): LeaderboardEntry[] {
       created_at: new Date().toISOString(),
     },
   ];
+}
+
+function getMockPlayerStats(): PlayerStats {
+  return {
+    totalGames: 15,
+    totalScore: 127,
+    averageAccuracy: 78,
+    bestStreak: 8,
+    favoriteSubreddits: ['AskReddit', 'explainlikeimfive', 'todayilearned'],
+    weakestSubreddits: ['programming', 'science', 'technology'],
+    totalPlayTime: 75,
+    rank: 42
+  };
+}
+
+function getMockCommunityStats(): CommunityStats {
+  return {
+    totalPlayers: 2847,
+    totalGames: 15632,
+    averageScore: 67,
+    hardestSubreddits: [
+      { name: 'programming', accuracy: 34 },
+      { name: 'science', accuracy: 38 },
+      { name: 'technology', accuracy: 42 },
+      { name: 'dataisbeautiful', accuracy: 45 },
+      { name: 'politics', accuracy: 48 }
+    ],
+    easiestSubreddits: [
+      { name: 'cats', accuracy: 89 },
+      { name: 'dogs', accuracy: 87 },
+      { name: 'aww', accuracy: 85 },
+      { name: 'funny', accuracy: 82 },
+      { name: 'memes', accuracy: 79 }
+    ],
+    mostPopularSubreddits: [
+      { name: 'AskReddit', count: 1250 },
+      { name: 'funny', count: 980 },
+      { name: 'AmItheAsshole', count: 875 },
+      { name: 'explainlikeimfive', count: 720 },
+      { name: 'todayilearned', count: 650 }
+    ]
+  };
 }

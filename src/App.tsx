@@ -4,6 +4,7 @@ import { GameProvider } from './context/GameContext';
 import HomeScreen from './components/HomeScreen';
 import GameScreen from './components/GameScreen';
 import LeaderboardScreen from './components/LeaderboardScreen';
+import StatsScreen from './components/StatsScreen';
 import './index.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
             <Route path="/" element={<HomeScreen />} />
             <Route path="/game" element={<GameScreen />} />
             <Route path="/leaderboard" element={<LeaderboardScreen />} />
+            <Route path="/stats" element={<StatsScreen />} />
           </Routes>
         </div>
       </Router>

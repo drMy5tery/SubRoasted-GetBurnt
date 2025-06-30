@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { MessageCircle, Play, Trophy, Zap } from 'lucide-react';
+import { MessageCircle, Play, Trophy, Zap, BarChart3, Sparkles } from 'lucide-react';
+import FeatureShowcase from './FeatureShowcase';
 
 export default function HomeScreen() {
   const navigate = useNavigate();
   const { dispatch } = useGame();
   const [playerName, setPlayerName] = useState('');
+  const [showFeatures, setShowFeatures] = useState(false);
 
   const handleStartGame = () => {
     if (playerName.trim()) {
@@ -19,6 +21,26 @@ export default function HomeScreen() {
   const handleViewLeaderboard = () => {
     navigate('/leaderboard');
   };
+
+  const handleViewStats = () => {
+    navigate('/stats');
+  };
+
+  if (showFeatures) {
+    return (
+      <div className="min-h-screen p-4">
+        <div className="max-w-6xl mx-auto mb-6">
+          <button
+            onClick={() => setShowFeatures(false)}
+            className="flex items-center text-white hover:text-blue-400 transition-colors mb-6"
+          >
+            ← Back to Home
+          </button>
+        </div>
+        <FeatureShowcase />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -42,17 +64,17 @@ export default function HomeScreen() {
 
           {/* Features */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+            <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
               <MessageCircle className="w-8 h-8 text-blue-400 mx-auto mb-2" />
               <h3 className="text-white font-semibold mb-1">Real Comments</h3>
               <p className="text-gray-400 text-sm">From actual Reddit posts</p>
             </div>
-            <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+            <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
               <Zap className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
               <h3 className="text-white font-semibold mb-1">AI Roasts</h3>
               <p className="text-gray-400 text-sm">Get burned for wrong guesses</p>
             </div>
-            <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+            <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
               <Trophy className="w-8 h-8 text-purple-400 mx-auto mb-2" />
               <h3 className="text-white font-semibold mb-1">Leaderboard</h3>
               <p className="text-gray-400 text-sm">Compete with others</p>
@@ -76,7 +98,7 @@ export default function HomeScreen() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <button
               onClick={handleStartGame}
               disabled={!playerName.trim()}
@@ -91,6 +113,24 @@ export default function HomeScreen() {
             >
               <Trophy className="w-6 h-6 mr-2" />
               Leaderboard
+            </button>
+          </div>
+
+          {/* Secondary Actions */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={handleViewStats}
+              className="flex-1 flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 hover:from-green-600/30 hover:to-emerald-600/30 border border-green-500/30 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105"
+            >
+              <BarChart3 className="w-5 h-5 mr-2" />
+              View Stats
+            </button>
+            <button
+              onClick={() => setShowFeatures(true)}
+              className="flex-1 flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 border border-purple-500/30 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Features
             </button>
           </div>
         </div>
