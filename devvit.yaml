@@ -1,0 +1,15 @@
+name: Guess That Comment
+version: 1.0.0
+description: A Reddit guessing game where users test their knowledge by guessing which subreddit a comment came from
+
+permissions:
+  - read-posts
+  - read-comments
+  - read-subreddits
+  - create-posts
+  - moderate-posts
+
+http-fetch:
+  - "*"
+
+redis: true
