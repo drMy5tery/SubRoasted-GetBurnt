@@ -84,7 +84,7 @@ export default function GameScreen() {
       dispatch({ type: 'INCREMENT_SCORE' });
     } else {
       setWrongGuess(answer);
-      // Generate and play roast for wrong answers
+      // Generate and play roast for wrong answers (this is the 1st API call)
       setIsGeneratingRoast(true);
       try {
         const roast = await generateRoast(
@@ -174,16 +174,16 @@ export default function GameScreen() {
 
   const getPlayButtonText = () => {
     if (spamClickCount >= 100) {
-      return "Stop It Get Some Help - Michael Jordan (England America President) 🏀";
+      return "Stop It Get Some Help 🏀";
     }
     if (spamClickCount >= 85) {
-      return "Still you Got no Child Support 💸";
+      return "Still No Child Support 💸";
     }
     if (spamClickCount >= 65) {
-      return "And Yet you were Adopted 👶";
+      return "And Yet You Were Adopted 👶";
     }
     if (spamClickCount >= 50) {
-      return "No Wonder Your Parents got Divorced 💔";
+      return "No Wonder Parents Divorced 💔";
     }
     if (spamClickCount >= 35) {
       return "Bro Touch Some Grass 🌱";
@@ -200,32 +200,33 @@ export default function GameScreen() {
     if (roastPlayCount >= 2) {
       return "Get Cooked Again? 🔥";
     }
+    // Initial button - this will make the 2nd API call (roast level 2)
     return "Play Roast Again 🎵";
   };
 
   const getPlayButtonStyle = () => {
     if (spamClickCount >= 100) {
-      return "text-purple-600 bg-purple-500/10 border-purple-500/30 cursor-not-allowed text-xs";
+      return "text-purple-100 bg-purple-600/30 border-purple-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
     }
     if (spamClickCount >= 85) {
-      return "text-pink-600 bg-pink-500/10 border-pink-500/30 cursor-not-allowed";
+      return "text-pink-100 bg-pink-600/30 border-pink-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
     }
     if (spamClickCount >= 65) {
-      return "text-indigo-600 bg-indigo-500/10 border-indigo-500/30 cursor-not-allowed";
+      return "text-indigo-100 bg-indigo-600/30 border-indigo-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
     }
     if (spamClickCount >= 50) {
-      return "text-red-600 bg-red-500/10 border-red-500/30 cursor-not-allowed";
+      return "text-red-100 bg-red-600/30 border-red-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
     }
     if (spamClickCount >= 35) {
-      return "text-green-600 bg-green-500/10 border-green-500/30 cursor-not-allowed";
+      return "text-green-100 bg-green-600/30 border-green-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
     }
     if (spamClickCount >= 20) {
-      return "text-yellow-600 bg-yellow-500/10 border-yellow-500/30 cursor-not-allowed";
+      return "text-yellow-100 bg-yellow-600/30 border-yellow-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
     }
     if (roastPlayCount >= 4) {
-      return "text-orange-600 bg-orange-500/10 border-orange-500/30 cursor-not-allowed";
+      return "text-orange-100 bg-orange-600/30 border-orange-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
     }
-    return "text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30";
+    return "text-blue-100 hover:text-white bg-blue-600/30 hover:bg-blue-600/50 border-blue-400/50 hover:border-blue-300 text-sm font-bold px-6 py-3";
   };
 
   const handlePlayRoast = async () => {
@@ -236,37 +237,40 @@ export default function GameScreen() {
     }
 
     // Always make API call for the first 4 clicks
-    if (roastPlayCount < 4) {
-      setIsGeneratingRoast(true);
-      setIsGeneratingSpeech(true);
+    // roastPlayCount starts at 0, so:
+    // - 1st click (roastPlayCount = 0): API call with level 2
+    // - 2nd click (roastPlayCount = 1): API call with level 3  
+    // - 3rd click (roastPlayCount = 2): API call with level 4
+    // - 4th click (roastPlayCount = 3): API call with level 5 (but we cap at 4)
+    setIsGeneratingRoast(true);
+    setIsGeneratingSpeech(true);
+    
+    try {
+      const nextRoastLevel = roastPlayCount + 2; // Start from level 2 since level 1 was automatic
+      const newRoast = await generateRoast(
+        state.currentComment?.text || '', 
+        wrongGuess, 
+        state.correctSubreddit,
+        Math.min(nextRoastLevel, 4) // Cap at level 4
+      );
       
-      try {
-        const nextRoastLevel = roastPlayCount + 1;
-        const newRoast = await generateRoast(
-          state.currentComment?.text || '', 
-          wrongGuess, 
-          state.correctSubreddit,
-          nextRoastLevel
-        );
-        
-        dispatch({ type: 'SET_ROAST', payload: newRoast });
-        setCurrentRoastLevel(nextRoastLevel);
-        
-        // Generate new speech (but it will return empty string)
-        const audioUrl = await generateSpeech(newRoast);
-        if (audioUrl && audioUrl.length > 0) {
-          dispatch({ type: 'SET_AUDIO_URL', payload: audioUrl });
-          // Audio functionality is disabled
-        }
-        
-        setRoastPlayCount(prev => prev + 1);
-        
-      } catch (error) {
-        console.error('Error generating new roast:', error);
-      } finally {
-        setIsGeneratingRoast(false);
-        setIsGeneratingSpeech(false);
+      dispatch({ type: 'SET_ROAST', payload: newRoast });
+      setCurrentRoastLevel(Math.min(nextRoastLevel, 4));
+      
+      // Generate new speech (but it will return empty string)
+      const audioUrl = await generateSpeech(newRoast);
+      if (audioUrl && audioUrl.length > 0) {
+        dispatch({ type: 'SET_AUDIO_URL', payload: audioUrl });
+        // Audio functionality is disabled
       }
+      
+      setRoastPlayCount(prev => prev + 1);
+      
+    } catch (error) {
+      console.error('Error generating new roast:', error);
+    } finally {
+      setIsGeneratingRoast(false);
+      setIsGeneratingSpeech(false);
     }
   };
 
@@ -421,10 +425,10 @@ export default function GameScreen() {
                           <button
                             onClick={handlePlayRoast}
                             disabled={isPlaying || (roastPlayCount >= 4 && spamClickCount >= 100)}
-                            className={`flex items-center transition-colors px-4 py-2 rounded-lg border ${getPlayButtonStyle()}`}
+                            className={`flex items-center transition-all duration-200 rounded-lg border ${getPlayButtonStyle()}`}
                           >
                             <Volume2 className="w-4 h-4 mr-2" />
-                            <span className="text-sm font-medium">
+                            <span className="font-medium">
                               {isPlaying ? 'Playing...' : getPlayButtonText()}
                             </span>
                           </button>
@@ -432,10 +436,10 @@ export default function GameScreen() {
                           {isPlaying && (
                             <button
                               onClick={stopAudio}
-                              className="flex items-center text-gray-400 hover:text-gray-300 transition-colors px-3 py-2 rounded-lg bg-gray-500/10 hover:bg-gray-500/20 border border-gray-500/30"
+                              className="flex items-center text-gray-100 hover:text-white transition-colors px-4 py-3 rounded-lg bg-gray-600/30 hover:bg-gray-600/50 border border-gray-400/50 text-sm font-bold"
                             >
                               <VolumeX className="w-4 h-4 mr-2" />
-                              <span className="text-sm">Stop</span>
+                              <span>Stop</span>
                             </button>
                           )}
                         </div>
