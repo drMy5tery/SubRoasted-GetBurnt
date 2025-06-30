@@ -1,0 +1,36 @@
+name: guess-that-comment
+version: 1.0.0
+description: A Reddit guessing game where users guess which subreddit a comment came from
+author: your-reddit-username
+
+# Devvit app configuration
+app:
+  # The app will run as a custom post type
+  customPostType:
+    name: "Guess That Comment"
+    description: "Test your Reddit knowledge by guessing which subreddit a comment came from!"
+    
+# Required permissions for the app
+permissions:
+  - read-posts
+  - read-comments
+  - read-subreddits
+  - create-posts
+  - moderate-posts
+
+# Settings that can be configured by moderators
+settings:
+  - name: difficulty
+    type: select
+    label: "Game Difficulty"
+    options:
+      - easy
+      - medium
+      - hard
+    default: medium
+    
+  - name: enableRoasts
+    type: boolean
+    label: "Enable AI Roasts"
+    description: "Allow AI to roast users for wrong answers"
+    default: true
