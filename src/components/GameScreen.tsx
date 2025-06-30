@@ -192,7 +192,7 @@ export default function GameScreen() {
       return;
     }
 
-    if (state.audioURL && !isPlaying) {
+    if (state.audioURL && state.audioURL.length > 0 && !isPlaying) {
       // Stop any existing audio
       if (audioRef.current) {
         audioRef.current.pause();
@@ -393,7 +393,7 @@ export default function GameScreen() {
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2"></div>
                           Generating speech...
                         </div>
-                      ) : state.audioURL ? (
+                      ) : state.audioURL && state.audioURL.length > 0 ? (
                         <div className="flex items-center gap-2 flex-wrap">
                           {spamClickCount >= 3 ? (
                             <div className={`px-4 py-2 rounded-lg border transition-colors ${getPlayButtonStyle()}`}>
