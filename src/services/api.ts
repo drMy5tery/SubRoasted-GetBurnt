@@ -18,7 +18,7 @@ const POPULAR_SUBREDDITS = [
   'wholesomememes', 'cats', 'dogs', 'programming', 'learnprogramming'
 ];
 
-// Expanded mock comments for better gameplay variety
+// Expanded mock comments for better gameplay variety (fallback)
 const MOCK_COMMENTS: Comment[] = [
   {
     id: 'mock1',
@@ -163,14 +163,19 @@ const MOCK_COMMENTS: Comment[] = [
 ];
 
 export async function generateComment(): Promise<Comment> {
-  // Always use mock data for reliability
-  // The edge function approach was causing 403 errors from Reddit's anti-bot protection
-  console.log('Using mock comment data for reliable gameplay');
-  
-  // Add a small delay to simulate API call
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  return MOCK_COMMENTS[Math.floor(Math.random() * MOCK_COMMENTS.length)];
+  // Try to use real Reddit API first
+  try {
+    const { redditClient } = await import('./reddit-api');
+    const comment = await redditClient.fetchRandomComment();
+    console.log('Successfully fetched real Reddit comment');
+    return comment;
+  } catch (error) {
+    console.warn('Reddit API failed, falling back to mock data:', error);
+    
+    // Fallback to mock data with simulated delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return MOCK_COMMENTS[Math.floor(Math.random() * MOCK_COMMENTS.length)];
+  }
 }
 
 export function generateMultipleChoiceOptions(correctSubreddit: string): string[] {
