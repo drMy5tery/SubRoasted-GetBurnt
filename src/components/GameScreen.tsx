@@ -84,17 +84,17 @@ export default function GameScreen() {
       dispatch({ type: 'INCREMENT_SCORE' });
     } else {
       setWrongGuess(answer);
-      // Generate and play roast for wrong answers (this is the 1st API call)
+      // Generate and play roast for wrong answers (this is the automatic roast - level 0)
       setIsGeneratingRoast(true);
       try {
         const roast = await generateRoast(
           state.currentComment?.text || '', 
           answer, 
           state.correctSubreddit,
-          1 // Initial roast level
+          0 // Initial automatic roast level (not a user click)
         );
         dispatch({ type: 'SET_ROAST', payload: roast });
-        setCurrentRoastLevel(1);
+        setCurrentRoastLevel(0);
         
         // Generate speech for the roast (but it will return empty string)
         setIsGeneratingSpeech(true);
@@ -200,7 +200,7 @@ export default function GameScreen() {
     if (roastPlayCount >= 2) {
       return "Get Cooked Again? 🔥";
     }
-    // Initial button - this will make the 2nd API call (roast level 2)
+    // Initial button - this will be the user's 1st click
     return "Play Roast Again 🎵";
   };
 
@@ -238,24 +238,24 @@ export default function GameScreen() {
 
     // Always make API call for the first 4 clicks
     // roastPlayCount starts at 0, so:
-    // - 1st click (roastPlayCount = 0): API call with level 2
-    // - 2nd click (roastPlayCount = 1): API call with level 3  
-    // - 3rd click (roastPlayCount = 2): API call with level 4
-    // - 4th click (roastPlayCount = 3): API call with level 5 (but we cap at 4)
+    // - 1st user click (roastPlayCount = 0): API call with userClickLevel = 1
+    // - 2nd user click (roastPlayCount = 1): API call with userClickLevel = 2  
+    // - 3rd user click (roastPlayCount = 2): API call with userClickLevel = 3
+    // - 4th user click (roastPlayCount = 3): API call with userClickLevel = 3 (cap at 3)
     setIsGeneratingRoast(true);
     setIsGeneratingSpeech(true);
     
     try {
-      const nextRoastLevel = roastPlayCount + 2; // Start from level 2 since level 1 was automatic
+      const userClickLevel = roastPlayCount + 1; // This represents the user's click number
       const newRoast = await generateRoast(
         state.currentComment?.text || '', 
         wrongGuess, 
         state.correctSubreddit,
-        Math.min(nextRoastLevel, 4) // Cap at level 4
+        Math.min(userClickLevel, 3) // Cap at level 3 for user clicks
       );
       
       dispatch({ type: 'SET_ROAST', payload: newRoast });
-      setCurrentRoastLevel(Math.min(nextRoastLevel, 4));
+      setCurrentRoastLevel(Math.min(userClickLevel, 3));
       
       // Generate new speech (but it will return empty string)
       const audioUrl = await generateSpeech(newRoast);
