@@ -1,98 +1,104 @@
-# GuessThatComment - The Ultimate Reddit Guessing Game
+# Guess That Comment - Reddit Devvit App
 
-Test your Reddit knowledge by guessing which subreddit a comment came from. Get roasted by AI when you're wrong!
+A Reddit guessing game where users test their knowledge by guessing which subreddit a comment came from. Built with Reddit's Devvit platform.
 
 ## Features
 
-- 🎯 **Real Reddit Comments**: Fetches live comments from popular subreddits
-- 🤖 **AI-Powered Roasts**: Get hilariously roasted by Groq AI when you guess wrong
-- 🎵 **Text-to-Speech**: Hear your roasts with ElevenLabs voice synthesis
-- 🏆 **Leaderboard**: Compete with other players
-- 📊 **Cringe Rating**: Rate comments on their cringe level
-- 📱 **Responsive Design**: Beautiful UI that works on all devices
+- 🎯 **Real Reddit Comments**: Uses live comments from popular subreddits
+- 🤖 **AI Roasts**: Get roasted when you guess wrong (simplified for Devvit)
+- 🏆 **Scoring System**: Track your accuracy across 10 questions
+- 📱 **Native Reddit Integration**: Runs directly within Reddit
 
-## Setup
+## Installation
 
-### 1. Reddit API Setup
-1. Go to [Reddit Apps](https://www.reddit.com/prefs/apps)
-2. Click "Create App" or "Create Another App"
-3. Choose "script" as the app type
-4. Copy your Client ID and Secret
+### Prerequisites
 
-### 2. Groq API Setup (Optional - for AI roasts)
-1. Go to [Groq Console](https://console.groq.com/)
-2. Create an account and get your API key
-3. Add it to your `.env` file
+1. Install the Devvit CLI:
+   ```bash
+   npm install -g devvit
+   ```
 
-### 3. ElevenLabs API Setup (Optional - for text-to-speech)
-1. Go to [ElevenLabs](https://elevenlabs.io/)
-2. Create an account and get your API key
-3. Add it to your `.env` file
+2. Login to your Reddit account:
+   ```bash
+   devvit login
+   ```
 
-### 4. Environment Variables
-Create a `.env` file in the root directory:
+### Setup
 
-```env
-# Reddit API Configuration (Required)
-VITE_REDDIT_CLIENT_ID=your_reddit_client_id_here
-VITE_REDDIT_CLIENT_SECRET=your_reddit_client_secret_here
+1. Clone this repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-# Groq API for AI Roasts (Optional)
-VITE_GROQ_API_KEY=your_groq_api_key_here
+3. Start development server:
+   ```bash
+   npm run dev
+   ```
 
-# ElevenLabs API for Text-to-Speech (Optional)
-VITE_ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+4. Upload to Reddit:
+   ```bash
+   npm run upload
+   ```
 
-# Supabase Configuration (Optional - for leaderboard)
-VITE_SUPABASE_URL=your_supabase_url_here
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
-```
+5. Install the app in your subreddit:
+   ```bash
+   devvit install <your-subreddit>
+   ```
 
-### 5. Install and Run
+## How to Use
+
+1. **As a Moderator**: Use the "Create Guess That Comment Game" option in your subreddit's mod menu
+2. **As a User**: Click on any "Guess That Comment" post to start playing
+3. **Gameplay**: 
+   - Read the comment
+   - Choose which subreddit you think it came from
+   - Get your score and optional roast
+   - Continue for 10 questions total
+
+## Development
+
+### Local Development
 ```bash
-npm install
 npm run dev
 ```
 
-## How It Works
+### Building
+```bash
+npm run build
+```
 
-1. **Reddit Integration**: Uses Reddit's OAuth API to fetch real comments from popular subreddits
-2. **AI Roasts**: When you guess wrong, Groq's Llama model generates a witty, sarcastic roast
-3. **Voice Synthesis**: ElevenLabs converts the roast text to speech with a sarcastic voice
-4. **Scoring**: Track your accuracy and compete on the leaderboard
-5. **Cringe Rating**: Rate comments to build a community-driven cringe database
+### Uploading to Reddit
+```bash
+npm run upload
+```
 
-## Tech Stack
+## App Structure
 
-- **Frontend**: React + TypeScript + Tailwind CSS
-- **APIs**: Reddit API, Groq AI, ElevenLabs
-- **Database**: Supabase (optional)
-- **Build Tool**: Vite
-- **Icons**: Lucide React
+- `src/main.ts` - Main Devvit app logic
+- `devvit.yaml` - App configuration and permissions
+- `package.json` - Dependencies and scripts
 
-## API Features
+## Permissions Required
 
-### Reddit API
-- Fetches real comments from 20+ popular subreddits
-- Filters for quality comments (length, score, content)
-- Handles authentication with client credentials flow
-
-### Groq AI
-- Uses Llama 3 70B model for generating roasts
-- Customized prompts for Reddit-style humor
-- Fallback roasts if API is unavailable
-
-### ElevenLabs
-- Uses Rachel voice for sarcastic delivery
-- Optimized voice settings for humor
-- Graceful fallback if API is unavailable
+- `read-posts` - To fetch posts from subreddits
+- `read-comments` - To fetch comments for the game
+- `read-subreddits` - To access subreddit information
+- `create-posts` - To create game posts
+- `moderate-posts` - For moderator actions
 
 ## Contributing
 
-Feel free to contribute by:
-- Adding more subreddits to the game
-- Improving the roast prompts
-- Enhancing the UI/UX
-- Adding new features
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with `npm run dev`
+5. Submit a pull request
 
-Built with ⚡ [Bolt.new](https://bolt.new)
+## License
+
+MIT License - see LICENSE file for details
+
+## Support
+
+For issues with the Devvit platform, visit [Reddit's Devvit documentation](https://developers.reddit.com/docs).
