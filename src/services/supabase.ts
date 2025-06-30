@@ -3,7 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Check if Supabase is properly configured
+const isSupabaseConfigured = supabaseUrl && 
+  supabaseKey && 
+  supabaseUrl !== 'your_supabase_url_here' && 
+  supabaseKey !== 'your_supabase_anon_key_here' &&
+  supabaseUrl.startsWith('https://');
+
+export const supabase = isSupabaseConfigured 
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 export interface LeaderboardEntry {
   id: string;
@@ -23,7 +32,7 @@ export interface CringeRating {
 }
 
 export async function saveGameScore(username: string, score: number, totalQuestions: number) {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabase) {
     console.warn('Supabase not configured, skipping score save');
     return;
   }
@@ -48,7 +57,7 @@ export async function saveGameScore(username: string, score: number, totalQuesti
 }
 
 export async function getLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabase) {
     console.warn('Supabase not configured, returning mock leaderboard');
     return getMockLeaderboard();
   }
@@ -68,7 +77,7 @@ export async function getLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
 }
 
 export async function saveCringeRatingToSupabase(commentId: string, userId: string, rating: number) {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabase) {
     console.warn('Supabase not configured, skipping cringe rating save');
     return;
   }
