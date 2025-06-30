@@ -174,16 +174,16 @@ export default function GameScreen() {
 
   const getPlayButtonText = () => {
     if (spamClickCount >= 100) {
-      return "Stop It Get Some Help 🏀";
+      return "Stop It Get Some Help - Michael Jordan (England America President) 🏀";
     }
     if (spamClickCount >= 85) {
-      return "Still No Child Support 💸";
+      return "Still you Got no Child Support 💸";
     }
     if (spamClickCount >= 65) {
-      return "And Yet You Were Adopted 👶";
+      return "And Yet you were Adopted 👶";
     }
     if (spamClickCount >= 50) {
-      return "No Wonder Parents Divorced 💔";
+      return "No Wonder Your Parents got Divorced 💔";
     }
     if (spamClickCount >= 35) {
       return "Bro Touch Some Grass 🌱";
@@ -206,27 +206,27 @@ export default function GameScreen() {
 
   const getPlayButtonStyle = () => {
     if (spamClickCount >= 100) {
-      return "text-purple-100 bg-purple-600/30 border-purple-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
+      return "text-white bg-purple-700 border-purple-500 cursor-not-allowed text-xs font-bold px-4 py-3";
     }
     if (spamClickCount >= 85) {
-      return "text-pink-100 bg-pink-600/30 border-pink-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
+      return "text-white bg-pink-700 border-pink-500 cursor-not-allowed text-sm font-bold px-4 py-3";
     }
     if (spamClickCount >= 65) {
-      return "text-indigo-100 bg-indigo-600/30 border-indigo-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
+      return "text-white bg-indigo-700 border-indigo-500 cursor-not-allowed text-sm font-bold px-4 py-3";
     }
     if (spamClickCount >= 50) {
-      return "text-red-100 bg-red-600/30 border-red-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
+      return "text-white bg-red-700 border-red-500 cursor-not-allowed text-sm font-bold px-4 py-3";
     }
     if (spamClickCount >= 35) {
-      return "text-green-100 bg-green-600/30 border-green-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
+      return "text-white bg-green-700 border-green-500 cursor-not-allowed text-sm font-bold px-4 py-3";
     }
     if (spamClickCount >= 20) {
-      return "text-yellow-100 bg-yellow-600/30 border-yellow-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
+      return "text-white bg-yellow-700 border-yellow-500 cursor-not-allowed text-sm font-bold px-4 py-3";
     }
     if (roastPlayCount >= 4) {
-      return "text-orange-100 bg-orange-600/30 border-orange-400/50 cursor-not-allowed text-sm font-bold px-6 py-3";
+      return "text-white bg-orange-700 border-orange-500 cursor-not-allowed text-sm font-bold px-4 py-3";
     }
-    return "text-blue-100 hover:text-white bg-blue-600/30 hover:bg-blue-600/50 border-blue-400/50 hover:border-blue-300 text-sm font-bold px-6 py-3";
+    return "text-white bg-blue-700 hover:bg-blue-600 border-blue-500 hover:border-blue-400 text-sm font-bold px-4 py-3";
   };
 
   const handlePlayRoast = async () => {
@@ -436,7 +436,7 @@ export default function GameScreen() {
                           {isPlaying && (
                             <button
                               onClick={stopAudio}
-                              className="flex items-center text-gray-100 hover:text-white transition-colors px-4 py-3 rounded-lg bg-gray-600/30 hover:bg-gray-600/50 border border-gray-400/50 text-sm font-bold"
+                              className="flex items-center text-white transition-colors px-4 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 border border-gray-500 text-sm font-bold"
                             >
                               <VolumeX className="w-4 h-4 mr-2" />
                               <span>Stop</span>
